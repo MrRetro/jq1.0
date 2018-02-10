@@ -146,32 +146,7 @@
 
     // 给jQuery添加一些静态方法
     jQuery.extend({
-		access: function( elems, key, value, exec, fn, pass ) {
-			var length = elems.length;
-	
-			// Setting many attributes
-			if ( typeof key === "object" ) {
-				for ( var k in key ) {
-					jQuery.access( elems, k, key[k], exec, fn, value );
-				}
-				return elems;
-			}
-	
-			// Setting one attribute
-			if ( value !== undefined ) {
-				// Optionally, function values get executed if exec is true
-				exec = !pass && exec && jQuery.isFunction(value);
-	
-				for ( var i = 0; i < length; i++ ) {
-					fn( elems[i], key, exec ? value.call( elems[i], i, fn( elems[i], key ) ) : value, pass );
-				}
-	
-				return elems;
-			}
-	
-			// Getting an attribute
-			return length ? fn( elems[0], key ) : undefined;
-		},
+    	
         // 遍历对象或类数组
         each: function( obj, fn ) {
             // 如果是数组或伪数组，按照顺序遍历
@@ -686,18 +661,193 @@
 	        // 这样可以对所有被添加的元素进行链式编程。
 	        return jQuery( result );
 	    },
-	    //样式设置
-	    css: function( name, value ) {
-			if ( arguments.length === 2 && value === undefined ) {
-				return this;
-			}
-		
-			return jQuery.access( this, name, value, true, function( elem, name, value ) {
-				return value !== undefined ?
-					jQuery.style( elem, name, value ) :
-					jQuery.css( elem, name );
-			});
-		}
+	    
+	    // 把所有的元素添加到指定的元素的最前面
+	    prependTo: function( selector ){
+	    	/*
+	    	 * 实现思路:
+	    	 * 1、定义一个数组，用来存储将来所有被添加的元素
+	    	 * 2、使用jQuery包装一下selector, 把不同的参数统一为jQ实例
+	    	 * 3、在外层遍历所有的元素(this)
+	    	 * 4、在内层遍历所有的目标(包装后的JQ实例)
+	    	 * 5、在内测判断,如果是第一次，则把外面遍历的元素本体添加到内层遍历元素的最前面,
+	    	 * 如果不是第一次,则把外面遍历的元素clone版本添加到内层遍历元素的最前面。
+	    	 * 6、最后把存储被添加的元素的数组使用jQ包装一下，然后返回
+	    	 **/
+	    	var result = [], tempNode;
+	    	
+	    	// 无论传入的是DOM还是jQ对象还是选择器
+	    	// 统一包装成新的jQ实例, 这样就可以统一处理了
+	    	var $selector = jQuery( selector );
+	    	
+	    	for( var i=0, len = this.length; i < len; i++){
+	    		
+	    		// $selector
+	    		for( var j=0, jLen = $selector.length; j < jLen; j++){
+	    			
+	    			// 先得到被添加的元素
+	    			tempNode = j === 0 ? this[ i ] : this[ i ].cloneNode( true );
+	    			
+	    			// 添加到指定元素的最前面
+	    			$selector[ j ].insertBefore( tempNode, $selector[ j ].firstChild );
+	    			
+	    			// 把被添加的元素存储起来
+	    			result.push( tempNode );
+	    		}
+	    		
+	    	}
+	    	
+	    	// 把所有被添加的元素保证成新实例返回，
+	        // 这样可以对所有被添加的元素进行链式编程。
+	    	return jQuery( result );
+	    	
+	    },
+	    
+	    // 把所有的元素添加到指定的元素的最前面
+	    _prependTo: function( selector ){
+	    	/*
+	    	 * 实现思路:
+	    	 * 1、定义一个数组，用来存储将来所有被添加的元素
+	    	 * 2、使用jQuery包装一下selector, 把不同的参数统一为jQ实例
+	    	 * 3、在外层遍历所有的元素(this)
+	    	 * 4、在内层遍历所有的目标(包装后的JQ实例)
+	    	 * 5、在内测判断,如果是第一次，则把外面遍历的元素本体添加到内层遍历元素的最前面,
+	    	 * 如果不是第一次,则把外面遍历的元素clone版本添加到内层遍历元素的最前面。
+	    	 * 6、最后把存储被添加的元素的数组使用jQ包装一下，然后返回
+	    	 **/
+	    	var result = [], tempNode;
+	    	
+	    	// 无论传入的是DOM还是jQ对象还是选择器
+	    	// 统一包装成新的jQ实例, 这样就可以统一处理了
+	    	var $selector = jQuery( selector );
+	    	
+	    	this.each(function(){
+	    		// 这里this指每一个被添加的元素
+	    		var self = this;
+	    		
+	    		$selector.each(function( i ){
+	    			// 这里this指每一个被添加元素的目的地
+	    			console.log(i)
+	    			// 先得到被添加的元素
+	    			tempNode = i === 0? self: self.cloneNode( true );
+	    			
+	    			// 添加到指定元素的最前面
+	    			this.insertBefore( tempNode, this.firstChild );
+	    			
+	    			// 把被添加的元素存储起来
+	    			result.push( tempNode );
+	    			
+	    		});
+	    		
+	    	});
+	    	
+	    	// 把所有被添加的元素保证成新实例返回，
+	        // 这样可以对所有被添加的元素进行链式编程。
+	    	return jQuery( result );
+	    },
+	    
+	    // 给所有元素添加html内容,或者其他元素
+	    append:function( context ){
+	    	
+	    	/*
+	    	 * 实现思路:
+	    	 * 1、判断context是不是字符串
+	    	 * 2、如果是,则把这个字符串累加给所有元素
+	    	 * 3、如果不是,则先把context包装成jQ对象统一处理
+	    	 * 4、外层遍历
+	    	 * 5、内层遍历  4、5、6完全可以考虑复用appendTo
+	    	 * 6、添加元素
+	    	 * 7、返回this
+	    	 **/
+	    	
+	    	var $context = $( context );
+	    	
+	    	// 如果是字符串,则累加给所有元素
+	    	if( jQuery.isString( context ) ){
+	    		for( var i = 0, len = this.length; i < len; i++ ){
+	    			this[ i ].innerHTML += context;
+	    		}
+	    	}
+	    	// 如果不是字符串,则把$context的每一项添加this的每一项中
+	    	else{
+	    		$context.appendTo( this );
+	    	}
+	    	
+	    	return this;
+	    	
+	    },
+	    
+	    // 给所有元素添加html内容,或者其他元素
+	    _append:function( context ){
+	    	
+	    	/*
+	    	 * 实现思路:
+	    	 * 1、判断context是不是字符串
+	    	 * 2、如果是,则把这个字符串累加给所有元素
+	    	 * 3、如果不是,则先把context包装成jQ对象统一处理
+	    	 * 4、外层遍历
+	    	 * 5、内层遍历  4、5、6完全可以考虑复用appendTo
+	    	 * 6、添加元素
+	    	 * 7、返回this
+	    	 **/
+	    	
+	    	var $context = $( context );
+	    	
+	    	// 如果是字符串,则累加给所有元素
+	    	if( jQuery.isString( context ) ){
+	    		this.each(function(){
+	    			
+	    			// 把得到的每一个元素进行innerHTML累加
+	    			this.innerHTML += context;
+	    		});
+	    	}
+	    	// 如果不是字符串,则把$context的每一项添加this的每一项中
+	    	else{
+	    		$context.appendTo( this );
+	    	}
+	    	
+	    	return this;
+	    	
+	    },
+	    
+	    // 给所有元素内容前添加html内容,或者其他元素
+	    prepend:function( context ){
+	    	var $context = $( context );
+	    	
+	    	// 如果是字符串,则累加给所有元素
+	    	if( jQuery.isString( context ) ){
+	    		this.each(function(){
+	    			
+	    			// 把得到的每一个元素进行innerHTML累加
+	    			this.innerHTML = context + this.innerHTML;
+	    		});
+	    	}
+	    	// 如果不是字符串,则把$context的每一项添加this的每一项最前面
+	    	else{
+	    		$context.prependTo( this );
+	    	}
+	    	
+	    	return this;
+	    },
+	    // 给所有元素内容前添加html内容,或者其他元素
+	    _prepend:function( context ){
+	    	var $context = $( context );
+	    	
+	    	// 如果是字符串,则累加给所有元素
+	    	if( jQuery.isString( context ) ){
+	    		this.each(function(){
+	    			
+	    			// 把得到的每一个元素进行innerHTML累加
+	    			this.innerHTML = context + this.innerHTML;
+	    		});
+	    	}
+	    	// 如果不是字符串,则把$context的每一项添加this的每一项最前面
+	    	else{
+	    		$context.prependTo( this );
+	    	}
+	    	
+	    	return this;
+	    }
 	} );
 
     // 这是真正的构造函数，同时把构造函数放在了原型中
