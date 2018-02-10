@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="../js/jq1.0.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+	    <div>
+	        <span>1111</span>
+	        <span>2222</span>
+	        <span>3333</span>
+	        <span>4444</span>
+	        <span>
+	            <a>1</a>
+	            <a>2</a>
+	            <a>3</a>
+	        </span>
+	    </div>
+
+
+		 <script>
+        // 清空所有元素的内容，返回值为实例
+        console.log($('span').empty());
+        $('span').empty().each(function( i ) {
+            if ( i % 2 === 0 ) {
+                this.innerHTML = '我是偶数个span';
+            }
+        });
+
+        // 删除所有的元素，返回值为实例
+        //console.log($('span').remove());
+        //document.body.appendChild( $('span').remove().get(2) );
+
+        // 获取第一个元素的内容，返回结果为第一个元素的内容
+        //console.log($('span').html());
+
+        // 设置所有元素的内容，返回值为实例
+        /*console.log($('span').html('统一设置新的内容<a>我是a标签</a>'));
+        console.log($('span').html('统一设置新的内容<a>我是a标签</a>').map(function () {
+            return 10;
+        }));*/
+
+        // 获取所有元素的文本
+        //console.log($('span').text());
+
+        // 设置所有元素的文本，返回值为实例
+        /*console.log($('span').text('统一设置新的内容<a>我是a标签</a>'));
+        console.log($('span').text('统一设置新的内容<a>我是a标签</a>').toArray());*/
+    </script>
+
+	</body>
+</html>

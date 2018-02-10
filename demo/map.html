@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="../js/jq1.0.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		 <div>
+	        <a>1fsd</a>
+	        <a>2sdfdfs</a>
+	        <a>3vvvvvvvv</a>
+	    </div>
+
+		<script type="text/javascript">
+	        // map测试
+	        $(function() {
+	
+	            // map
+	            var result = $('a').map(function() {
+	                // 这里的this指向遍历到的每一个a
+	                return this.innerHTML;
+	            });
+	
+	            // 打印map返回的数组
+	            console.log( result );
+	
+	            console.log( $.map( $('a'), function () {
+	                return this.innerHTML;
+	            }));
+	        });
+
+		</script>
+	</body>
+</html>

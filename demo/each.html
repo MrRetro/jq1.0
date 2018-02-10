@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="../js/jq1.0.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		 <div class="div">
+	        <a>1</a>
+	        <a>2</a>
+	        <a>3</a>
+	    </div>
+
+		<script type="text/javascript">
+	        // each测试
+	        $(function() {
+	
+	            // each 谁调用返回谁，我们这里是$(a)调用的，所以又得到了这一堆a组成的实例
+	            var result = $('a').each(function (index, a) {
+	                console.log(index, a, this);
+	            });
+	
+	            // 这一堆a组成的实例可以继续调用原型方法
+//	            console.log(result.last().toArray());
+	            
+	        });
+
+
+		</script>
+	</body>
+</html>
