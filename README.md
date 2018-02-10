@@ -6,4 +6,4 @@
  * 交流群: 584861789
  * Date: 2018/02/10
  
- [查看](https://github.com/MrRetro/jq1.0/blob/master/js/jq1.0.js)
+ * [查看](https://github.com/MrRetro/jq1.0/blob/master/js/jq1.0.js)
