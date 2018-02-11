@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="../js/jq1.0.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div class="a">
+	        <span>1111</span>
+	        <span>2222</span>
+	        <span>3333</span>
+	        <span>4444</span>
+	        <span>
+	            <a>1</a>
+	            <a>2</a>
+	            <a>3</a>
+	        </span>
+	    </div>
+
+		<script type="text/javascript">
+			$('span').attr('aa','ddd')
+			$('span').attr({
+				a:'a',
+				b:'b',
+				c:'c',
+			})
+			console.log($('div').attr('class'))
+			$('div')._attr('class','dddddddddddd')
+		</script>
+	</body>
+</html>
