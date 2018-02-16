@@ -416,25 +416,145 @@
 			/*
 			 * 实现思路:
 			 * 1、遍历所有的元素
-			 * 2、依次绑定事件(调用静态方法绑定)
-			 * 3、链式编程返回this
+			 * 2、判断每一个元素有没有$_event_cache这个属性值
+			 * 3、如果有则继续使用,没有则初始化为一个对象
+			 * 4、在继续判断这个对象有没有对应事件类型的数组
+			 * 5、如果没有,说明是第一次绑定该事件
+			 *  5.1、那么需要给$_event_cache这个对象以type为key添加一个数组
+			 *  5.2、然后把传入的回调push进去
+			 *  5.3、最后还得绑定对应的事件(调用静态的addEvent方法即可)
+			 *  5.4、这个事件回调里面去遍历对应事件的数组,得到每一个事件回调,依次执行
+			 *  5.5、执行时,需要改变内部的this,还需要把事件对象传递过去
+			 * 6、如果有,直接把传入的回调push到对应事件的数组就可以了
+			 * 7、链式编程返回this
 			 **/
 			this.each( function(){
-				jQuery.addEvent( this, type, fn );
+				
+				// 这里的this代表遍历到的每一个元素
+				var self = this;
+				this.$_event_cache = this.$_event_cache || {};
+				
+				// 如果之前没有对应事件的数组, 说明是第一次绑定事件
+				if( !this.$_event_cache[ type ] ){
+					this.$_event_cache[ type ] = [];
+					this.$_event_cache[ type ].push( fn );
+					
+					// 如果是第一次绑定该事件,那么需要真正调用浏览器的方法绑定事件
+					jQuery.addEvent( this, type, function( e ){
+						
+						for(var i = 0, len = self.$_event_cache[ type ].length; i < len; i++){
+							self.$_event_cache[ type ][ i ].call( self, e );
+						}
+						
+					} );
+				}else{
+					this.$_event_cache[ type ].push( fn );
+				}
 			});
 			
+			
+			// 链式编程
+			return this;
+		},
+		_on: function( type, fn ){
+			/*
+			 * 实现思路:
+			 * 1、遍历所有的元素
+			 * 2、判断每一个元素有没有$_event_cache这个属性值
+			 * 3、如果有则继续使用,没有则初始化为一个对象
+			 * 4、在继续判断这个对象有没有对应事件类型的数组
+			 * 5、如果没有,说明是第一次绑定该事件
+			 *  5.1、那么需要给$_event_cache这个对象以type为key添加一个数组
+			 *  5.2、然后把传入的回调push进去
+			 *  5.3、最后还得绑定对应的事件(调用静态的addEvent方法即可)
+			 *  5.4、这个事件回调里面去遍历对应事件的数组,得到每一个事件回调,依次执行
+			 *  5.5、执行时,需要改变内部的this,还需要把事件对象传递过去
+			 * 6、如果有,直接把传入的回调push到对应事件的数组就可以了
+			 * 7、链式编程返回this
+			 **/
+			this.each( function(){
+				
+				// 这里的this代表遍历到的每一个元素
+				var self = this;
+				this.$_event_cache = this.$_event_cache || {};
+				
+				// 如果之前没有对应事件的数组, 说明是第一次绑定事件
+				if( !this.$_event_cache[ type ] ){
+					this.$_event_cache[ type ] = [];
+					this.$_event_cache[ type ].push( fn );
+					
+					// 如果是第一次绑定该事件,那么需要真正调用浏览器的方法绑定事件
+					jQuery.addEvent( this, type, function( e ){
+						
+						//遍历所有的回调
+						jQuery.each( self.$_event_cache[ type ],function( i, val ){
+							
+							// 这里的this,值得是每一个回调函数
+							this.call( self, e )
+							
+						});
+						
+					} );
+				}else{
+					this.$_event_cache[ type ].push( fn );
+				}
+			});
+			
+			
+			// 链式编程
 			return this;
 		},
 		// 移除事件
 		off: function( type, fn ){
 			/*
 			 * 实现思路:
-			 * 1、遍历所有的元素
-			 * 2、依次移除事件(调用静态方法移除)
-			 * 3、链式编程返回this
+			 * 1、如果没有传参,遍历所有的元素
+			 * 2、然后遍历每一个元素的$_event_cache对象,分别清空这个对象中的每一个数组
+			 * 3、如果没有$_event_cache   如果有$_event_cache继续判断
+			 * 4、线判断有没有参数,没有参数 ()
+			 * 5、如果传入1个参数,那么把元素$_event_cache对象指定类型的数组清空
+			 * 6、如果传2个以上参数,那么把元素$_event_cache对象指定类型的数组中指定的回调删除即可
+			 * 7、返回链式编程this
 			 **/
+			var  argLen = arguments.length;
+			
 			this.each( function(){
-				jQuery.removeEvent( this, type, fn);
+				
+				// 没有绑定过任何事件, 就不用处理了
+				if( !this.$_event_cache ){
+					return;
+				}
+				
+				// 如果绑过事件,需要进一步处理
+				else{
+					
+					// 如果没有参数,遍历所有的事件数组,分别清空
+					if( argLen === 0 ){
+						for( var key in this.$_event_cache ){
+							this.$_event_cache[ key ] = [];
+						}
+						
+					}
+					
+					// 如果传入一个参数,则清空指定事件类型的数组
+					else if( argLen === 1 ){
+						this.$_event_cache[ type ] = [];
+					}
+					
+					// 如果传入多个参数,则清空指定事件类型数组中指定的回调函数
+					else{
+						
+						// 遍历对应事件类型的数组,得到每一个回调
+						for( var i = this.$_event_cache[ type ].length - 1; i >= 0; i--){
+							
+							// 依次和传入的回调比较,如果相等,则从数组中删除
+							if( this.$_event_cache[ type ][ i ] === fn ){
+								this.$_event_cache[ type ].splice( i, 1 );
+							}
+						}
+					}
+					
+				}
 			});
 			
 			return this;

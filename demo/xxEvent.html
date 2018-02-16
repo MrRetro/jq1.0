@@ -25,15 +25,30 @@
 	    </div>
 
 		<script type="text/javascript">
+			
+			function fn(){
+				console.log('fn')
+			}
+			
 			//addEvent
-			$('span').on('click',clickHandle).on('click',clickHandle1);
-			$('span').off('click',clickHandle)
-			function clickHandle(){
-				alert(111111)
-			}
-			function clickHandle1(){
-				alert(2222222)
-			}
+			$('span').on('click',function( e ){
+				console.log('11111',this,e)
+			}).on('click',function( e ){
+				console.log('22222',this,e)
+			}).on('click',function( e ){
+				console.log('33333',this,e)
+			})._on('click',function( e ){
+				console.log('44444',this,e)
+			})._on('click',function( e ){
+				console.log('55555',this,e)
+			}).on('mouseout',function(){
+				console.log('out')
+			}).on('mouseout',fn)
+			.on('mouseout',fn)
+			.on('mouseout',fn);
+			
+//			$('span').off( 'click' );
+			$('span').off( 'mouseout', fn );
 		</script>
 	</body>
 </html>
