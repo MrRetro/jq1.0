@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<style type="text/css">
+			.ccc{background: blue;}
+			.bbb{background: red;}
+			.aaa{background: gray;}
+		</style>
+		<script src="../js/jq1.0.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		<div class="a b c aabbcc p">
+	        <span class="a">1111</span>
+	        <span class="b">2222</span>
+	        <span>3333</span>
+	        <span>4444</span>
+	        <span>
+	            <a>1</a>
+	            <a>2</a>
+	            <a>3</a>
+	        </span>
+	        <input type="text" name="" id="" value="aaaaaaaaa" />
+	    </div>
+
+		<script type="text/javascript">
+			//addEvent
+			$('span').on('click',clickHandle).on('click',clickHandle1);
+			$('span').off('click',clickHandle)
+			function clickHandle(){
+				alert(111111)
+			}
+			function clickHandle1(){
+				alert(2222222)
+			}
+		</script>
+	</body>
+</html>

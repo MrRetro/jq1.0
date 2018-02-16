@@ -147,6 +147,38 @@
     // 给jQuery添加一些静态方法
     jQuery.extend({
     	
+    	// 兼容添加事件
+    	addEvent: function( ele, type, fn ){
+    		
+    		// ele必须是DOM, type必须是字符串, fn必须是函数.
+    		// 有一个不是,那就直接return
+    		if( !ele.nodeType || !jQuery.isString( type ) || !jQuery.isFunction( fn )){
+    			return;
+    		}
+    		
+    		// 兼容绑定事件
+    		if( ele.addEventListener){
+    			ele.addEventListener( type, fn );
+    		}else{
+    			ele.attachEvent( 'on' + type, fn );
+    		}
+    	},
+    	// 兼容移除事件
+    	removeEvent: function( ele, type, fn ){
+    		
+    		// ele必须是DOM, type必须是字符串, fn必须是函数.
+    		// 有一个不是,那就直接return
+    		if( !ele.nodeType || !jQuery.isString( type ) || !jQuery.isFunction( fn )){
+    			return;
+    		}
+    		
+    		// 兼容移除事件
+    		if( ele.removeEventListener){
+    			ele.removeEventListener( type, fn );
+    		}else{
+    			ele.detachEvent( 'on' + type, fn );
+    		}
+    	},
     	// 获取样式,已经处理了兼容性
     	getStyle: function( dom, style ){
     		
@@ -379,7 +411,34 @@
 	//插件方法
 	// 给原型扩展DOM操作方法，这样jQ实例就可以使用了
 	jQuery.fn.extend( {
-	
+		// 绑定事件
+		on: function( type, fn ){
+			/*
+			 * 实现思路:
+			 * 1、遍历所有的元素
+			 * 2、依次绑定事件(调用静态方法绑定)
+			 * 3、链式编程返回this
+			 **/
+			this.each( function(){
+				jQuery.addEvent( this, type, fn );
+			});
+			
+			return this;
+		},
+		// 移除事件
+		off: function( type, fn ){
+			/*
+			 * 实现思路:
+			 * 1、遍历所有的元素
+			 * 2、依次移除事件(调用静态方法移除)
+			 * 3、链式编程返回this
+			 **/
+			this.each( function(){
+				jQuery.removeEvent( this, type, fn);
+			});
+			
+			return this;
+		},
 	    // 清空所有元素的内容
 	    empty: function() {
 	        /*
