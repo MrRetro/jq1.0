@@ -137,16 +137,126 @@
 
 	}
 	
-	// 给jQuery和原型分别添加extend方法
-    jQuery.extend = jQuery.fn.extend = function( obj ) {
-        for ( var key in obj ) {
-            this[ key ] = obj[ key ];
+	// 添加extend方法
+	/*
+	 * 需求:
+	 * 1、传入一个参数,谁调用就给谁混入内容
+	 * 2、传入多个参数,把后面对象的内容混入到第一个对象中
+	 **/
+    jQuery.extend = jQuery.fn.extend = function() {
+        
+        // 被混入的目标
+        var target = arguments[ 0 ];
+        
+        // 传入一个参数,把这个参数的内容混入到this中
+        if( arguments.length === 1 ){
+        	target = this;
+	        for ( var key in arguments[ 0 ] ) {
+	            target[ key ] = arguments[ 0 ][ key ];
+	        }
+        }else if( arguments.length >= 2 ){
+        	
+        	// 遍历得到后面所有的对象
+        	for( var i = 1, len = arguments.length; i < len; i++){
+        		
+        		// 遍历每一个对象多有的属性
+        		for( var key in arguments[ i ] ){
+        			
+        			// 把后面对象的内容混入到第一个对象中
+        			target[ key ] = arguments[ i ][ key ];
+        		}
+        	}
         }
+        
+        return target;
     }
 
     // 给jQuery添加一些静态方法
     jQuery.extend({
-    	
+    	// ajax初始配置
+		ajaxSettings: {
+			url: location.href,    // 默认的url为本地地址
+			type: "GET",           // 默认请求的方法为GET
+			async: true,           // 默认为异步请求
+			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+			timeout: null,         // 默认不看延迟事件
+			success: function(){},
+			error: function(){},
+			complete: function(){},
+		},
+		// 把对象装换为url参数形式的字符串
+		urlStringify: function( obj ){
+			var result = '', key;
+			
+			// 传入的不是对象,就直接返回空字符串
+			if( !jQuery.isObject( obj )){
+				return result;
+			}
+			
+			for( key in obj ){
+				result += window.encodeURIComponent( key ) + '=' + window.encodeURIComponent( obj[ key] ) + '&';
+			}
+			
+			// 从0截取到倒数第一个字符串返回、
+			return result.slice( 0, -1 );
+			
+		},
+		// 加工options
+		processOptions: function( options ){
+			var optionsNew;
+			
+			// 合并用户和默认的配置,得到一份新的
+			optionsNew = {};
+			jQuery.extend( optionsNew, jQuery.ajaxSettings, options );
+			
+			// 对data进行加工处理
+			optionsNew.data = jQuery.urlStringify( optionsNew.data );
+			
+			// 把type同意转换为大写,防止意外
+			optionsNew.type = optionsNew.type.toUpperCase();
+			
+			// 如果是GET请求,把数据加到URL中
+			if( optionsNew.type === 'GET' ){
+				optionsNew.url += '?' + optionsNew.data;
+				optionsNew.data = null;
+			}
+			
+			// 返回加工后的配置
+			return optionsNew;
+		},
+		// ajax封装
+		ajax: function( options ){
+			
+			var optionsNew, xhr;
+			
+			// 加工得到一份处理好的配置项
+			optionsNew = jQuery.processOptions( options );
+			
+			// 创建xhr对象,发送请求
+			xhr = new XMLHttpRequest();
+			xhr.open( optionsNew.type, optionsNew.url, optionsNew.async );
+			
+			if( optionsNew.type === 'POST' ){
+				xhr.setRequestHeader( 'Content-Type', optionsNew.contentType );
+			}
+			
+			xhr.onreadystatechange = function(){
+				
+				//先判断请求是否完成,完成就执行complete方法
+				if( xhr.readyState === 4 ){
+					optionsNew.complete();
+					
+					// 判断是否请求成功,成果过就执行success方法,否则就执行error方法
+					if( ( xhr.status >= 200 && xhr.status < 300) || xhr.status === '304' ){
+						optionsNew.success( xhr.responseText );
+					}else{
+						optionsNew.error( xhr.status);
+					}
+				}
+			};
+			
+			xhr.send( optionsNew.data );
+		},
     	// 兼容添加事件
     	addEvent: function( ele, type, fn ){
     		
@@ -1553,6 +1663,16 @@
 	    	
 	    }
 	} );
+
+	//重写所有事件
+	jQuery.each( ( "blur focus focusin focusout load resize scroll unload click dblclick mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave change select submit keydown keypress keyup error contextmenu" ).split(" "),
+		function( i, eventName ){
+			
+			//事件设置
+			jQuery.fn[ eventName ] = function( fn ){
+				return this.on( eventName, fn );
+			}
+		} );
 
     // 这是真正的构造函数，同时把构造函数放在了原型中
     var init = jQuery.fn.init = function( selector ) {
