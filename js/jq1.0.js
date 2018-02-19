@@ -180,6 +180,7 @@
 			async: true,           // 默认为异步请求
 			contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 			timeout: null,         // 默认不看延迟事件
+			dataType: 'JSON',      // 默认请求的回来的数据类型
 			success: function(){},
 			error: function(){},
 			complete: function(){},
@@ -212,6 +213,9 @@
 			// 对data进行加工处理
 			optionsNew.data = jQuery.urlStringify( optionsNew.data );
 			
+			// 把dataType同意转换为大写,防止意外
+			optionsNew.dataType = optionsNew.dataType.toUpperCase();
+			
 			// 把type同意转换为大写,防止意外
 			optionsNew.type = optionsNew.type.toUpperCase();
 			
@@ -227,7 +231,7 @@
 		// ajax封装
 		ajax: function( options ){
 			
-			var optionsNew, xhr;
+			var optionsNew, xhr, result, timer;
 			
 			// 加工得到一份处理好的配置项
 			optionsNew = jQuery.processOptions( options );
@@ -244,18 +248,103 @@
 				
 				//先判断请求是否完成,完成就执行complete方法
 				if( xhr.readyState === 4 ){
+					
+					// 在指定事件内完成请求,那么清除定时器
+					clearTimeout( timer );
+					
 					optionsNew.complete();
 					
 					// 判断是否请求成功,成果过就执行success方法,否则就执行error方法
 					if( ( xhr.status >= 200 && xhr.status < 300) || xhr.status === '304' ){
-						optionsNew.success( xhr.responseText );
+						
+						// 根据预期的dataType进行数据转换
+						switch( optionsNew.dataType ){
+							case 'JSON':
+								result = JSON.parse( xhr.responseText );
+								break;
+							case 'SCRIPT':
+								eval( xhr.responseText );
+								result = xhr.responseText;
+								break;
+							case 'STYLE':
+								$('<style></style>').html( xhr.responseText ).appendTo( 'head' );
+								result = xhr.responseText;
+								break;
+							default:
+								result = xhr.responseText;
+								break;
+						}
+						optionsNew.success( result );
 					}else{
-						optionsNew.error( xhr.status);
+						optionsNew.error( xhr.status );
 					}
 				}
 			};
 			
+			// 如果设置超时,那么开启一个定时器
+			if( optionsNew.timeout ){
+				
+				// 在指定时间内,请求还没有完成
+				// 那么直接调用error方法报错
+				timer = setTimeout( function(){
+					
+					// 超时执行error
+					optionsNew.error( '超时' );
+					
+					// error执行了,事件回调就没有必要执行了
+					xhr.onreadystatechange = null;
+					
+				}, optionsNew.timeout);
+			}
+			
 			xhr.send( optionsNew.data );
+		},
+		//get请求
+		get: function( url, data, fn ){
+			// 如果传入两个参数,默认为第二个参数为回调
+			fn = fn || data || function(){};
+			jQuery.ajax({
+				url: url,
+				data: data,
+				success: fn
+			});
+			
+		},
+		//post请求
+		post: function( url, data, fn ){
+			// 如果传入两个参数,默认为第二个参数为回调
+			fn = fn || data || function(){};
+			jQuery.ajax({
+				url: url,
+				type:'post',
+				data: data,
+				success: fn
+			});
+			
+		},
+		//json请求
+		getJson: function( url, data, fn ){
+			// 如果传入两个参数,默认为第二个参数为回调
+			fn = fn || data || function(){};
+			jQuery.ajax({
+				url: url,
+				type:'json',
+				data: data,
+				success: fn
+			});
+			
+		},
+		//css请求
+		getStyle: function( url, data, fn ){
+			// 如果传入两个参数,默认为第二个参数为回调
+			fn = fn || data || function(){};
+			jQuery.ajax({
+				url: url,
+				type:'style',
+				data: data,
+				success: fn
+			});
+			
 		},
     	// 兼容添加事件
     	addEvent: function( ele, type, fn ){
